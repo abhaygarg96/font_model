@@ -110,11 +110,11 @@ class StyleClassifierLM(pl.LightningModule):
 
     def training_step(
         self,
-        batch: tuple[tuple[Tensor, Tensor], Tensor, Tensor],
+        batch: tuple[tuple[Tensor, Tensor], Tensor],
         _batch_idx: int,
     ) -> Tensor:
         """Execute a training step."""
-        glyph, codepoint, font_index = batch
+        glyph, font_index = batch
         predictions = self(glyph)
 
         loss = self.loss_fn(predictions, font_index)
@@ -132,11 +132,11 @@ class StyleClassifierLM(pl.LightningModule):
 
     def validation_step(
         self,
-        batch: tuple[tuple[Tensor, Tensor], Tensor, Tensor],
+        batch: tuple[tuple[Tensor, Tensor], Tensor],
         _batch_idx: int,
     ) -> None:
         """Execute a validation step."""
-        glyph, codepoint, font_index = batch
+        glyph, font_index = batch
         predictions = self(glyph)
         loss = self.loss_fn(predictions, font_index)
 
@@ -151,11 +151,11 @@ class StyleClassifierLM(pl.LightningModule):
 
     def test_step(
         self,
-        batch: tuple[tuple[Tensor, Tensor], Tensor, Tensor],
+        batch: tuple[tuple[Tensor, Tensor], Tensor],
         _batch_idx: int,  # noqa: PT019
     ) -> None:
         """Execute a test step."""
-        glyph, codepoint, font_index = batch
+        glyph, font_index = batch
         predictions = self(glyph)
         loss = self.loss_fn(predictions, font_index)
 

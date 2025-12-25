@@ -36,12 +36,12 @@ class MultiFontPostScriptCollate:
 
     def __call__(
         self,
-        batch: list[tuple[tuple[Tensor, Tensor], int, int]],
-    ) -> tuple[tuple[Tensor, Tensor], Tensor, Tensor]:
+        batch: list[tuple[tuple[Tensor, Tensor], int]],
+    ) -> tuple[tuple[Tensor, Tensor], Tensor]:
         """Collate function for dataloaders that pads the batch to the same size."""
-        glyph, codepoint, font_index = zip(*batch, strict=True)
+        glyph, font_index = zip(*batch, strict=True)
         glyph_padded = _pad_postscript_outline(glyph, self.pad_size)
-        return glyph_padded, torch.tensor(codepoint), torch.tensor(font_index)
+        return glyph_padded, torch.tensor(font_index)
 
 
 class MultiFontPathPostScriptCollate:

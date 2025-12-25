@@ -323,6 +323,11 @@ def postscript_segment_to_tensor(
         )
         args.append([coord for point in padded_points for coord in point])
 
+    # Add <sep> just after the last command in each glyph
+    command_types.append(POSTSCRIPT_COMMAND_TYPE_TO_NUM["<sep>"])
+    padded_points = _pad_postscript_with_zeros(())
+    args.append([coord for point in padded_points for coord in point])
+
     command_type_tensor = torch.tensor(command_types, dtype=torch.int64)
     args_tensor = torch.tensor(args, dtype=torch.float32).view(-1, 6)
 

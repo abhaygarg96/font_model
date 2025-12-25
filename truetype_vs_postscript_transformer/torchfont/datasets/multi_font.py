@@ -72,16 +72,16 @@ class MultiFontDataset(Dataset):
             )
             self.font_datasets.append(font_dataset)
 
-            self.indices.extend([(font_index, i) for i in range(len(font_dataset))])
+            self.indices.extend([(font_index, word_idx) for word_idx in range(len(font_dataset))])
 
     def __len__(self) -> int:
         """Get the total number of samples across all fonts."""
         return len(self.indices)
 
-    def __getitem__(self, idx: int) -> tuple[Any, int, int]:
+    def __getitem__(self, idx: int) -> tuple[Any, int]:
         """Get the glyph, its codepoint, and the font index."""
-        font_index, glyph_idx = self.indices[idx]
-        codepoint, glyph = self.font_datasets[font_index][glyph_idx]
-        codepoint_index = self.valid_codepoints.index(codepoint)
+        font_index, word_idx = self.indices[idx]
+        word, word_glyph_list = self.font_datasets[font_index][word_idx]
+        # codepoint_index = self.valid_codepoints.index(codepoint)
 
-        return glyph, codepoint_index, font_index
+        return word_glyph_list, font_index
