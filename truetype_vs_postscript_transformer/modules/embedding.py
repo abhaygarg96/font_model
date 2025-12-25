@@ -46,13 +46,13 @@ class SegmentEmbedding(nn.Module):
         """Forward pass for the embedding layer."""
         command_indices_tensor, positions_tensor = glyphs_batch
         embedded_commands = self.command_embedding(command_indices_tensor)
-        print(embedded_commands.shape)
+        # print(embedded_commands.shape)
         embedded_positions = self.position_embedding(positions_tensor)
-        print(embedded_positions.shape)
+        # print(embedded_positions.shape)
         combined_embeddings = (embedded_commands + embedded_positions) * math.sqrt(
             self.embedding_dim,
         )
-        print(combined_embeddings.shape)
+        # print(combined_embeddings.shape)
         return self.dropout(combined_embeddings)
 
 
