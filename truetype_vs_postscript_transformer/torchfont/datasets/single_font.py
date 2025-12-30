@@ -58,7 +58,7 @@ class SingleFontDataset(Dataset):
             codepoint = ord(char)
             useful_codepoints.append(codepoint)
         
-        self.num_words = 500
+        self.num_words = 1500
         self.words = []
         for idx in range(self.num_words):
             random_word = random.choices(useful_codepoints, k=random.randint(2, 7))
