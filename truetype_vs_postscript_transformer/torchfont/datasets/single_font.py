@@ -4,6 +4,7 @@ import random
 from collections.abc import Callable
 from typing import Any, Literal
 
+import torch
 from fontTools.ttLib import TTFont
 from torch.utils.data import Dataset
 
@@ -46,6 +47,24 @@ class SingleFontDataset(Dataset):
 
         cmap = self.font.getBestCmap()
         all_codepoints = list(cmap.keys())
+        self.glyph_name_codepoint_map = {}
+        for codepoint in all_codepoints:
+            glyph_name = cmap.get(codepoint)
+            self.glyph_name_codepoint_map[glyph_name] = codepoint
+
+        useful_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+        useful_codepoints = []
+        for char in useful_chars:
+            codepoint = ord(char)
+            useful_codepoints.append(codepoint)
+        
+        self.num_words = 1500
+        self.words = []
+        for idx in range(self.num_words):
+            random_word = random.choices(useful_codepoints, k=random.randint(2, 7))
+            self.words.append(random_word)
+        # self.words = ["hello", "how", "are", "you"]
+
 
         if codepoints is not None:
             self.codepoints = list(set(all_codepoints) & set(codepoints))
@@ -62,17 +81,17 @@ class SingleFontDataset(Dataset):
         if seed is not None:
             random.seed(seed)
 
-        shuffled_codepoints = random.sample(
-            self.codepoints,
-            len(self.codepoints),
+        shuffled_words = random.sample(
+            self.words,
+            len(self.words),
         )
-        train_end = int(split_ratios[0] * len(shuffled_codepoints))
-        valid_end = train_end + int(split_ratios[1] * len(shuffled_codepoints))
+        train_end = int(split_ratios[0] * len(shuffled_words))
+        valid_end = train_end + int(split_ratios[1] * len(shuffled_words))
 
         self.splits = {
-            "train": shuffled_codepoints[:train_end],
-            "valid": shuffled_codepoints[train_end:valid_end],
-            "test": shuffled_codepoints[valid_end:],
+            "train": shuffled_words[:train_end],
+            "valid": shuffled_words[train_end:valid_end],
+            "test": shuffled_words[valid_end:],
         }
 
         if split is not None:
@@ -80,18 +99,37 @@ class SingleFontDataset(Dataset):
 
     def __len__(self) -> int:
         """Get the number of codepoints."""
-        return len(self.codepoints)
+        return len(self.words)
 
     def __getitem__(self, idx: int) -> tuple[int, Any]:
         """Get the glyph path and its corresponding codepoint."""
-        codepoint = self.codepoints[idx]
+        word = self.words[idx]
+        glyph_commands_list = []
+        glyph_points_list = []
+        for codepoint in word:
+            # codepoint = self.glyph_name_codepoint_map.get(char)
+            if self.outline_mode == "segment":
+                glyph = extract_segment_outline(self.font, codepoint)
+            else:
+                glyph = extract_point_outline(self.font, codepoint)
 
-        if self.outline_mode == "segment":
-            glyph = extract_segment_outline(self.font, codepoint)
-        else:
-            glyph = extract_point_outline(self.font, codepoint)
+            if self.transform is not None and glyph is not None:
+                glyph = self.transform(glyph, self.font)
+            
+            # glyph_list.append(glyph)
+            glyph_commands_list.append(glyph[0])
+            glyph_points_list.append(glyph[1])
 
-        if self.transform is not None and glyph is not None:
-            glyph = self.transform(glyph, self.font)
+        
+        # codepoint = self.codepoints[idx]
 
-        return codepoint, glyph
+        # if self.outline_mode == "segment":
+        #     glyph = extract_segment_outline(self.font, codepoint)
+        # else:
+        #     glyph = extract_point_outline(self.font, codepoint)
+
+        # if self.transform is not None and glyph is not None:
+        #     glyph = self.transform(glyph, self.font)
+        glyph_commands = torch.cat(glyph_commands_list, dim=0)
+        glyph_points = torch.cat(glyph_points_list, dim=0)
+        return word, (glyph_commands, glyph_points)

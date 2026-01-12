@@ -136,6 +136,7 @@ POSTSCRIPT_COMMAND_TYPE_TO_NUM = {
     "lineTo": 4,
     "curveTo": 5,
     "closePath": 6,
+    "<sep>": 7,
 }
 
 POSTSCRIPT_NUM_TO_COMMAND_TYPE = {
